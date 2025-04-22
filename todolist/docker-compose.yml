@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  # Backend service
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - DATABASE_URL=postgresql://tododb_owner:npg_sJ3qkNYwVL4R@ep-delicate-sun-acouefrc-pooler.sa-east-1.aws.neon.tech/tododb?sslmode=require
+      - JWT_SECRET=33334bbbehhfbwhjb3h3bb23
+      - JWT_EXPIRES_IN=24h
+      - MAIN_DOMAIN=todolist.com
+      - PROTOCOL=http
+      - CORS_ORIGIN=*
+      - BCRYPT_ROUNDS=10
+    networks:
+      - todolist-network
+    depends_on:
+      - frontend
+
+  # Frontend service
+  frontend:
+    build:
+      context: ../client
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - todolist-network
+    # Host entries para desenvolvimento local com subdomínios
+    extra_hosts:
+      - "todolist.com:127.0.0.1"
+      - "minhaempresa.todolist.com:127.0.0.1"
+    volumes:
+      - ../client/nginx/default.conf:/etc/nginx/conf.d/default.conf
+
+# Networks
+networks:
+  todolist-network:
+    driver: bridge
